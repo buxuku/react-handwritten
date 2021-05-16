@@ -2,7 +2,7 @@
 
 ### 准备工作
 
-使用` npx create-react-app react-handwritten`命令来快速创建一个项目,删除public和
+使用`npx create-react-app react-handwritten`命令来快速创建一个项目,删除public和
 src目录下面的所有文件.
 
 然后在public目录下创建一个`index.html`文件,放入最简单的一个html文件.
