@@ -1,10 +1,12 @@
 import React from './react';
-import ReactDOM from 'react-dom';
+import ReactDOM from './react-dom';
 
-const element = <h1>hello <span>world!</span></h1>;
-
-console.log('element', element);
+class Hello extends React.Component {
+    render() {
+        return <h1 id="title" className='title'>hello <span style={{color: 'red'}}>{this.props.name}</span></h1>
+    }
+}
 
 ReactDOM.render(
-    element, document.getElementById('root')
+    <Hello name='world'/>, document.getElementById('root')
 );
