@@ -1,3 +1,4 @@
+import { addEvent } from './event';
 /**
  * 将虚拟DOM渲染到真实DOM节点里面
  * @param vdom
@@ -79,6 +80,8 @@ function renderAttributes(dom, attributes = {}){
             for(let attr in value){
                 dom.style[attr] = value[attr];
             }
+        } else if(key.startsWith('on')){
+            addEvent(dom, key.toLocaleLowerCase(), value)
         } else {
             dom[key] = value;
         }

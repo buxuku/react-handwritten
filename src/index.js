@@ -2,8 +2,13 @@ import React from './react';
 import ReactDOM from './react-dom';
 
 class Hello extends React.Component {
+    handleClick = (type) => {
+        console.log('clicked', type);
+    }
+
     render() {
-        return <h1 id="title" className='title'>hello <span style={{color: 'red'}}>{this.props.name}</span></h1>
+        return <h1 id="title" className='title' onClick={() => this.handleClick('h1')}>hello <span
+            style={{color: 'red'}} onClick={() => this.handleClick('span')}>{this.props.name}</span></h1>
     }
 }
 
