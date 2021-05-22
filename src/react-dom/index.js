@@ -29,8 +29,10 @@ function createDom(vdom) {
         if (type.isReactComponent) { // 是一个类组件
             return mountClassComponent(vdom);
         }
+        let renderVdom = type(props);
+        vdom.oldVdom = renderVdom;
         // 让type执行,返回虚拟DOM,继续处理返回的虚拟DOM
-        return createDom(type(props));
+        return createDom(renderVdom);
     }
     if (props) {
         const {children} = props;
@@ -40,6 +42,7 @@ function createDom(vdom) {
             render(children, dom);
         }
     }
+    vdom.dom = dom;
     return dom;
 }
 
@@ -64,6 +67,7 @@ function mountClassComponent(vdom) {
     const {type, props} = vdom;
     const classInstance = new type(props);
     const classInstanceVdom = classInstance.render();
+    classInstance.oldVdom = classInstanceVdom; // 将虚拟dom挂载到当前组件实例上面.接下来的真实dom会挂到classInstanceVdom和classInstance.oldVdom上面;
     return createDom(classInstanceVdom);
 }
 
@@ -87,6 +91,38 @@ function renderAttributes(dom, attributes = {}){
         }
     }
     return dom;
+}
+
+/**
+ * 递归查找真实dom节点
+ * @param vdom
+ * @returns {*}
+ */
+function findDom(vdom){
+    const { type } = vdom;
+    let dom;
+    /**
+     * 比如render(){return <Demo />}这里面render出来的还不是最终的虚拟dom;
+     */
+    if(typeof type === 'function'){
+        // vdom可能是一个函数或者类组件,需要继续递归查找真实的DOM节点.
+        dom = findDom(vdom.oldVdom);
+    }else{
+        dom = vdom.dom;
+    }
+    return dom;
+}
+
+/**
+ * 比较两次虚拟DOM的差异,并将差异更新到真实DOM节点上面去
+ * @param oldVdom
+ * @param newVdom
+ */
+
+export function compareTwoVdoms(oldVdom, newVdom){
+    let oldDom = findDom(oldVdom);
+    let newDom = createDom(newVdom);
+    oldDom.parentNode.replaceChild(newDom, oldDom);
 }
 
 const ReactDOM = {
