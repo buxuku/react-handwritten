@@ -1,4 +1,6 @@
-import { compareTwoVdoms } from '../react-dom';
+import {compareTwoVdoms} from '../react-dom';
+import {Updater} from "./Updater";
+
 /**
  * React.Component父类
  */
@@ -8,12 +10,14 @@ export class Component {
     constructor(props) {
         this.props = props;
         this.state = {};
+        this.updater = new Updater(this)
     }
+
     setState(partialState) {
-        this.state = {...this.state, ...partialState};
-        this.forceUpdate()
+        this.updater.addState(partialState)
     }
-    forceUpdate(){
+
+    forceUpdate() {
         const oldVdom = this.oldVdom;
         const newVdom = this.render();
         compareTwoVdoms(oldVdom, newVdom)

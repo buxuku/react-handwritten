@@ -1,3 +1,5 @@
+import { updateTracker } from '../react/Updater';
+
 /**
  * 事件注册,所有的事件都绑定到Document上面
  * @param dom
@@ -17,6 +19,7 @@ export function addEvent(dom, eventType, handler){
  * @param event
  */
 function dispatchEvent(event){
+    updateTracker.isBatchingUpdate = true;
     let { target, type } = event;
     let eventType = `on${type}`;
     let syntheticEvent = createSyntheticEvent(event);
@@ -27,6 +30,7 @@ function dispatchEvent(event){
         handler && handler.call(target, syntheticEvent);
         target=target.parentNode;
     }
+    updateTracker.batchUpdate();
 }
 
 /**
