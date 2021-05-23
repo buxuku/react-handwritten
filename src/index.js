@@ -1,68 +1,52 @@
 import React from './react';
 import ReactDOM from './react-dom';
 
-class Hello extends React.Component {
+class Sum extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            count: 1,
-        }
+        this.result = React.createRef();
+        this.numbers = React.createRef();
     }
 
-    handleAdd = async () => {
-        this.setState({
-            count: this.state.count + 1,
-        });
-        this.setState({
-            count: this.state.count + 1,
-        });
-        console.log('1:', this.state);
-        setTimeout(() => {
-            this.setState({
-                count: this.state.count + 1,
-            })
-            console.log('2:', this.state);
-            this.setState({
-                count: this.state.count + 1,
-            })
-            console.log('3:', this.state);
-        }, 0)
-        this.setState({
-            count: this.state.count + 1,
-        })
-        this.setState((state) => ({
-            count: state.count + 1,
-        }));
-        console.log('4:', this.state);
-        await new Promise(resolve => {
-            setTimeout(() => {
-                this.setState({
-                    count: this.state.count + 1
-                });
-                console.log('5:', this.state);
-                resolve();
-            }, 0);
-        })
-        this.setState({
-            count: this.state.count + 1,
-        })
-        this.setState({
-            count: this.state.count + 1,
-        })
-        console.log('6:', this.state);
+    handleSum = () => {
+        this.result.current.value = this.numbers.current.getResult();
     }
 
     render() {
-        console.log('render', this.state.count);
         return (
             <div>
-                <p>number: {this.state.count}</p>
-                <button onClick={this.handleAdd}>+</button>
+                <Numbers ref={this.numbers}/>
+                <WrapperResult ref={this.result}/>
+                <p>
+                    <button onClick={this.handleSum}>Sum</button>
+                </p>
             </div>
         )
     }
 }
 
+class Numbers extends React.Component {
+    constructor(props) {
+        super(props);
+        this.number1 = React.createRef();
+        this.number2 = React.createRef();
+    }
+
+    getResult = () => {
+        return parseFloat(this.number1.current.value) + parseFloat(this.number2.current.value);
+    }
+
+    render() {
+        return <p><input ref={this.number1}/> + <input ref={this.number2}/> = </p>
+    }
+}
+
+function Result(props, ref) {
+    return <input ref={ref}/>
+}
+
+const WrapperResult = React.forwardRef(Result);
+
 ReactDOM.render(
-    <Hello/>, document.getElementById('root')
+    <Sum/>, document.getElementById('root')
 );

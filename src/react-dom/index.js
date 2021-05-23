@@ -20,7 +20,10 @@ function createDom(vdom) {
         dom = document.createTextNode(vdom);
         return dom;
     }
-    const {type, props} = vdom;
+    const {type, props, ref} = vdom;
+    if(type && type.$$typeof === 'REACT_FORWARD_COMPONENT'){
+        return mountForwardComponent(vdom);
+    }
     if (typeof type === 'string') {
         dom = document.createElement(type);
         renderAttributes(dom, props);
@@ -43,6 +46,9 @@ function createDom(vdom) {
         }
     }
     vdom.dom = dom;
+    if(ref){
+        ref.current = dom;
+    }
     return dom;
 }
 
@@ -64,11 +70,26 @@ function reconcileChildren(childrenVdom, parentDOM) {
  * @returns {Text|*|HTMLElement}
  */
 function mountClassComponent(vdom) {
-    const {type, props} = vdom;
+    const {type, props, ref} = vdom;
     const classInstance = new type(props);
     const classInstanceVdom = classInstance.render();
     classInstance.oldVdom = classInstanceVdom; // 将虚拟dom挂载到当前组件实例上面.接下来的真实dom会挂到classInstanceVdom和classInstance.oldVdom上面;
+    if(ref){
+        ref.current = classInstance;
+    }
     return createDom(classInstanceVdom);
+}
+
+/**
+ * 获取forwardRef包装过的组件的虚拟Dom
+ * @param vdom
+ * @returns {Text|*|Text|HTMLElement|HTMLElement}
+ */
+function mountForwardComponent(vdom){
+    const {type, props, ref} = vdom;
+    const renderVdom = type.render(props, ref);
+    vdom.oldVdom = renderVdom;
+    return createDom(renderVdom);
 }
 
 /**
