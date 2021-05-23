@@ -57,6 +57,12 @@ ReactDOM.render(
 ### 目录
 
 * [1.实现React.createElement](https://github.com/buxuku/react-handwritten/issues/1#)
+
 * [2.虚拟DOM渲染成真实DOM](https://github.com/buxuku/react-handwritten/issues/2#)
+
 * [3.事件处理,合成事件](https://github.com/buxuku/react-handwritten/issues/3)
+
+* [4.组件的全量更新](https://github.com/buxuku/react-handwritten/issues/4#)
+
+* [5.setState异步批量更新](https://github.com/buxuku/react-handwritten/issues/5#)
 
