@@ -9,7 +9,6 @@ export let updateTracker = {
         for (let updater of updateTracker.updaters) {
             updater.updateComponent();
         }
-        updateTracker.isBatchingUpdate = false;
         updateTracker.updaters.length = 0;
     }
 };
@@ -26,18 +25,25 @@ export class Updater {
 
     addState(partialState) {
         this.pendingState.push(partialState);
-        if (!updateTracker.isBatchingUpdate) { //如果不是批量更新,则直接更新组件
-            this.updateComponent()
-        } else if (!this.batchTracking) { // 如果还没有添加进updateTracker队列中,刚添加进去
+        if (!this.batchTracking) { // 如果还没有添加进updateTracker队列中,刚添加进去
             updateTracker.updaters.push(this);
             this.batchTracking = true;
+        }
+        this.emitUpdate(this.componentInstance.props);
+    }
+
+    emitUpdate(nextProps) {
+        this.nextProps = nextProps;
+        if (!updateTracker.isBatchingUpdate) { //如果不是批量更新,则直接更新组件
+            this.updateComponent()
         }
     }
 
     updateComponent() {
-        const {componentInstance, pendingState} = this;
-        if (pendingState.length) {
+        const {componentInstance, pendingState, nextProps} = this;
+        if (pendingState.length || nextProps) {
             componentInstance.state = this.getState();
+            componentInstance.props = nextProps;
             componentInstance.forceUpdate();
         }
         this.batchTracking = false;

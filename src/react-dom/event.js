@@ -30,6 +30,7 @@ function dispatchEvent(event){
         handler && handler.call(target, syntheticEvent);
         target=target.parentNode;
     }
+    updateTracker.isBatchingUpdate = false;
     updateTracker.batchUpdate();
 }
 

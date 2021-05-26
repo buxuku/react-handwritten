@@ -1,4 +1,6 @@
 import {Component} from "./Component";
+import {wrapToVdom} from '../utils';
+import {REACT_FORWARD_COMPONENT} from "../constants";
 
 /**
  * 生成虚拟DOM
@@ -8,9 +10,9 @@ import {Component} from "./Component";
  * @returns {{ref: null, $$typeof: symbol, text: null, type, key: null, props: {}}}
  */
 const createElement = (type, config = {}, ...children) => {
-    const {ref, ...props} = config || {};
+    const {ref, __source, __self, ...props} = config || {};
     if (children.length) {
-        props.children = children.length > 1 ? children : children[0];
+        props.children = children.length > 1 ? children.map(wrapToVdom) : wrapToVdom(children[0]);
     }
     return {
         $$typeof: Symbol.for('react.element'),
@@ -32,7 +34,7 @@ const createRef = () => {
  */
 function forwardRef(render) {
     return {
-        $$typeof: 'REACT_FORWARD_COMPONENT',
+        $$typeof: REACT_FORWARD_COMPONENT,
         render,
     }
 }
