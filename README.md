@@ -66,3 +66,7 @@ ReactDOM.render(
 
 * [5.setState异步批量更新](https://github.com/buxuku/react-handwritten/issues/5#)
 
+* [6.组件的ref, createRef, forwardRef](https://github.com/buxuku/react-handwritten/issues/6#)
+
+* [7.基本的dom-diff](https://github.com/buxuku/react-handwritten/issues/7#)
+
