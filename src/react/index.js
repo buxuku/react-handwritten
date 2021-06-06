@@ -10,7 +10,7 @@ import {REACT_FORWARD_COMPONENT} from "../constants";
  * @returns {{ref: null, $$typeof: symbol, text: null, type, key: null, props: {}}}
  */
 const createElement = (type, config = {}, ...children) => {
-    const {ref, __source, __self, ...props} = config || {};
+    const {ref, __source, __self, key, ...props} = config || {};
     if (children.length) {
         props.children = children.length > 1 ? children.map(wrapToVdom) : wrapToVdom(children[0]);
     }
@@ -18,7 +18,7 @@ const createElement = (type, config = {}, ...children) => {
         $$typeof: Symbol.for('react.element'),
         type,
         props,
-        key: null,
+        key,
         ref,
     }
 }

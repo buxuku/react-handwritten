@@ -1,7 +1,9 @@
 import {addEvent} from './event';
 import {wrapToVdom, isNotNeedRender} from '../utils';
-import {REACT_FORWARD_COMPONENT, REACT_TEXT} from '../constants';
+import {REACT_FORWARD_COMPONENT, REACT_TEXT, MOVE, REMOVE, INSERT} from '../constants';
 
+const diffQueue = [];
+let updateDepth = 0;
 /**
  * 将虚拟DOM渲染到真实DOM节点里面
  * @param vdom
@@ -62,6 +64,7 @@ function createDom(vdom) {
  */
 function reconcileChildren(childrenVdom, parentDOM) {
     for (let i = 0; i < childrenVdom.length; i++) {
+        childrenVdom[i]._mountIndex = i;
         let childVdom = childrenVdom[i];
         render(childVdom, parentDOM);
     }
@@ -225,13 +228,135 @@ function updateFunctionComponent(oldVdom, newVdom){
 function updateChildren(parentDom, oldChildren, newChildren) {
     oldChildren = Array.isArray(oldChildren) ? oldChildren : [oldChildren];
     newChildren = Array.isArray(newChildren) ? newChildren : [newChildren];
-    const maxLength = Math.max(oldChildren.length, newChildren.length);
-    for (let i = 0; i < maxLength; i++) {
-        const nextDom = oldChildren.find((item, index) => index > i && item && findDom(item));
-        compareTwoVdoms(oldChildren[i], newChildren[i], parentDom, findDom(nextDom));
+    updateDepth ++;
+    diff(parentDom, oldChildren, newChildren);
+    updateDepth --;
+    if(updateDepth === 0){
+        path(diffQueue);
+        diffQueue.length = 0;
     }
 }
 
+function path(diffQueue){
+    // 1.删除要删除的
+    let deleteMap = {};
+    let deleteChildren = [];
+    diffQueue.forEach((item) => {
+        const {type, fromIndex, toIndex} = item;
+        if(type === MOVE || type === REMOVE){
+            const oldChild = item.parentDom.children[fromIndex];
+            deleteMap[fromIndex] = oldChild;
+            deleteChildren.push(oldChild);
+        }
+    });
+    deleteChildren.forEach(item => {
+        item.parentNode.removeChild(item);
+    });
+    diffQueue.forEach((item) => {
+        const { type, fromIndex, toIndex, parentDom, dom} = item;
+        if(type === INSERT){
+            insertChildAt(parentDom, dom, toIndex)
+        }
+        if(type === MOVE){
+            insertChildAt(parentDom, deleteMap[fromIndex], toIndex)
+        }
+    })
+}
+
+function insertChildAt(parentDom,dom, toIndex){
+    let oldChild = parentDom.children[toIndex];
+    oldChild ? parentDom.insertBefore(dom, oldChild) : parentDom.appendChild(dom);
+}
+
+function diff(parentDom, oldChildren, newChildren){
+    const oldChildrenMap = getOldChildrenMap(oldChildren);
+    const newChildrenMap = getNewChildrenMap(oldChildrenMap, newChildren);
+    let lastIndex = 0;
+    newChildren.forEach((item, index) => {
+        if(!isNotNeedRender(item)){
+            const key = item.key || index.toString();
+            const oldElement = oldChildrenMap[key];
+            if(item === oldElement){ // 是相同节点
+                if(oldElement._mountIndex < lastIndex){ // 判断老元素是否需要移动
+                    diffQueue.push({
+                        parentDom,
+                        type: MOVE,
+                        fromIndex: oldElement._mountIndex,
+                        toIndex: index,
+                    })
+                }
+                lastIndex = Math.max(oldElement._mountIndex, lastIndex);
+            }else{ // 属于新元素,直接插入
+                diffQueue.push({
+                    parentDom,
+                    type: INSERT,
+                    toIndex: index,
+                    dom: createDom(item)
+                })
+            }
+            item._mountIndex = index; // 更新挂载索引
+        }
+    })
+    for(let key in oldChildrenMap){
+        if(!newChildrenMap.hasOwnProperty(key)){
+            const oldElement = oldChildrenMap[key];
+            diffQueue.push({
+                parentDom,
+                type: REMOVE,
+                fromIndex: oldElement._mountIndex
+            })
+        }
+    }
+}
+/**
+ * 利用子元素生成一张key => vdom的映射表
+ * @param elements
+ * @returns {{}}
+ */
+function getOldChildrenMap(elements){
+    let map = {};
+    elements.forEach((item, index) => {
+        const key = item.key || index.toString();
+        map[key] = item;
+    });
+    return map;
+}
+
+/**
+ * 新元素的map表,如果有可复用的老元素,其key对应的值直接就是旧元素.
+ * @param oldChildrenMap
+ * @param elements
+ * @returns {{}}
+ */
+function getNewChildrenMap(oldChildrenMap, elements){
+    let map = {};
+    elements.forEach((item, index) => {
+        if(!isNotNeedRender(item)){ // 新节点不需要渲染
+            const key = item.key || index.toString();
+            let oldElement = oldChildrenMap[key];
+            // 判断是否可以复用
+            if(canDeepCompare(oldElement, item)){
+                updateElement(oldElement, item); // 直接复用老的DOM节点,更新节点属性和子元素.
+                elements[index] = oldElement;
+            }
+            map[key] = elements[index];
+        }
+    })
+    return map;
+}
+
+/**
+ * key相同,同时类型也相同才能进行复用
+ * @param oldElement
+ * @param newElement
+ * @returns {boolean}
+ */
+function canDeepCompare(oldElement, newElement){
+    if(oldElement && newElement){
+        return oldElement.type === newElement.type;
+    }
+    return;
+}
 const ReactDOM = {
     render,
 }
