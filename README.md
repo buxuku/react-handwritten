@@ -70,3 +70,5 @@ ReactDOM.render(
 
 * [7.基本的dom-diff](https://github.com/buxuku/react-handwritten/issues/7#)
 
+*  [8.高级dom-diff,利用key进行优化](https://github.com/buxuku/react-handwritten/issues/8#)
+
