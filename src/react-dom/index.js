@@ -47,7 +47,7 @@ function createDom(vdom) {
         if (Array.isArray(children)) {
             reconcileChildren(children, dom);
         } else {
-            render(children, dom);
+            reconcileChildren([children], dom);
         }
     }
     vdom.dom = dom;
@@ -63,10 +63,13 @@ function createDom(vdom) {
  * @param parentDOM
  */
 function reconcileChildren(childrenVdom, parentDOM) {
+    let mountIndex = 0;
     for (let i = 0; i < childrenVdom.length; i++) {
-        childrenVdom[i]._mountIndex = i;
-        let childVdom = childrenVdom[i];
-        render(childVdom, parentDOM);
+        if(!isNotNeedRender(childrenVdom[i])){
+            childrenVdom[i]._mountIndex = mountIndex ++;
+            let childVdom = childrenVdom[i];
+            render(childVdom, parentDOM);
+        }
     }
 }
 
@@ -264,7 +267,7 @@ function path(diffQueue){
 }
 
 function insertChildAt(parentDom,dom, toIndex){
-    let oldChild = parentDom.children[toIndex];
+    let oldChild = parentDom.childNodes[toIndex];
     oldChild ? parentDom.insertBefore(dom, oldChild) : parentDom.appendChild(dom);
 }
 
@@ -272,6 +275,7 @@ function diff(parentDom, oldChildren, newChildren){
     const oldChildrenMap = getOldChildrenMap(oldChildren);
     const newChildrenMap = getNewChildrenMap(oldChildrenMap, newChildren);
     let lastIndex = 0;
+    let mountIndex = 0;
     newChildren.forEach((item, index) => {
         if(!isNotNeedRender(item)){
             const key = item.key || index.toString();
@@ -282,7 +286,7 @@ function diff(parentDom, oldChildren, newChildren){
                         parentDom,
                         type: MOVE,
                         fromIndex: oldElement._mountIndex,
-                        toIndex: index,
+                        toIndex: mountIndex,
                     })
                 }
                 lastIndex = Math.max(oldElement._mountIndex, lastIndex);
@@ -290,15 +294,15 @@ function diff(parentDom, oldChildren, newChildren){
                 diffQueue.push({
                     parentDom,
                     type: INSERT,
-                    toIndex: index,
+                    toIndex: mountIndex,
                     dom: createDom(item)
                 })
             }
-            item._mountIndex = index; // 更新挂载索引
+            item._mountIndex = mountIndex ++; // 更新挂载索引
         }
     })
     for(let key in oldChildrenMap){
-        if(!newChildrenMap.hasOwnProperty(key)){
+        if(!newChildrenMap.hasOwnProperty(key) && !isNotNeedRender(oldChildrenMap[key])){
             const oldElement = oldChildrenMap[key];
             diffQueue.push({
                 parentDom,
@@ -316,7 +320,7 @@ function diff(parentDom, oldChildren, newChildren){
 function getOldChildrenMap(elements){
     let map = {};
     elements.forEach((item, index) => {
-        const key = item.key || index.toString();
+        const key = (item && item.key) || index.toString();
         map[key] = item;
     });
     return map;
@@ -331,16 +335,16 @@ function getOldChildrenMap(elements){
 function getNewChildrenMap(oldChildrenMap, elements){
     let map = {};
     elements.forEach((item, index) => {
+        const key = (item && item.key) || index.toString();
         if(!isNotNeedRender(item)){ // 新节点不需要渲染
-            const key = item.key || index.toString();
             let oldElement = oldChildrenMap[key];
             // 判断是否可以复用
             if(canDeepCompare(oldElement, item)){
                 updateElement(oldElement, item); // 直接复用老的DOM节点,更新节点属性和子元素.
                 elements[index] = oldElement;
             }
-            map[key] = elements[index];
         }
+        map[key] = elements[index];
     })
     return map;
 }

@@ -16,6 +16,7 @@ class Counter extends React.Component {
         return this.state.show ? (
                 <ul onClick={this.handleClick}>
                     <li key="A" id="1">A</li>
+                    {true}
                     <li key="B">B</li>
                     <li key="C">C</li>
                     <li key="D">D</li>
@@ -24,8 +25,10 @@ class Counter extends React.Component {
             : (
                 <ul onClick={this.handleClick}>
                     <li key="A" id="2">A</li>
+                    {null}
                     <li key="C">C</li>
                     <li key="B">B</li>
+                    {undefined}
                     <li key="E">E</li>
                     <li key="F">F</li>
                 </ul>
