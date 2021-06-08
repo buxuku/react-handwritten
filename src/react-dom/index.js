@@ -247,7 +247,7 @@ function path(diffQueue){
     diffQueue.forEach((item) => {
         const {type, fromIndex, toIndex} = item;
         if(type === MOVE || type === REMOVE){
-            const oldChild = item.parentDom.children[fromIndex];
+            const oldChild = item.parentDom.childNodes[fromIndex];
             deleteMap[fromIndex] = oldChild;
             deleteChildren.push(oldChild);
         }
@@ -302,8 +302,10 @@ function diff(parentDom, oldChildren, newChildren){
         }
     })
     for(let key in oldChildrenMap){
-        if(!newChildrenMap.hasOwnProperty(key) && !isNotNeedRender(oldChildrenMap[key])){
-            const oldElement = oldChildrenMap[key];
+        const oldElement = oldChildrenMap[key];
+        const notWithNew = !newChildrenMap.hasOwnProperty(key); // 新节点里面不存在该老元素
+        const notSame = newChildrenMap[key] !== oldElement; // 新节点该元素的类型变了
+        if(!isNotNeedRender(oldElement) && (notWithNew || notSame)){
             diffQueue.push({
                 parentDom,
                 type: REMOVE,
