@@ -13,6 +13,7 @@ function render(vdom, container) {
     if (isNotNeedRender(vdom)) return // 如果vdom不存在,则不需要创建真实dom;
     const dom = createDom(vdom);
     container.appendChild(dom);
+    if(dom.componentDidMount) dom.componentDidMount();
 }
 
 /**
@@ -80,14 +81,22 @@ function reconcileChildren(childrenVdom, parentDOM) {
  */
 function mountClassComponent(vdom) {
     const {type, props, ref} = vdom;
-    const classInstance = new type(props);
+    const defaultProps = type.defaultProps || {};
+    const combinedProps = {...defaultProps, ...props};
+    const classInstance = new type(combinedProps);
+    if(classInstance.componentWillMount) classInstance.componentWillMount();
+    if(type.getDerivedStateFromProps){
+        classInstance.state = type.getDerivedStateFromProps(combinedProps, classInstance.state) || classInstance.state;
+    }
     const classInstanceVdom = wrapToVdom(classInstance.render());
     classInstance.oldVdom =  classInstanceVdom; // 将虚拟dom挂载到当前组件实例上面.接下来的真实dom会挂到classInstanceVdom和classInstance.oldVdom上面;
     vdom.classInstance = classInstance;
     if (ref) {
         ref.current = classInstance;
     }
-    return createDom(classInstanceVdom);
+    const dom = createDom(classInstanceVdom);
+    if(classInstance.componentDidMount) dom.componentDidMount = classInstance.componentDidMount.bind(classInstance);
+    return dom;
 }
 
 /**
@@ -174,9 +183,12 @@ export function compareTwoVdoms(oldVdom, newVdom, parentDom, nextDom) {
     if (oldVdom && newVdom && (oldVdom.type !== newVdom.type)) { // 如果节点类型变了,直接进行全量更新
         const oldDom = findDom(oldVdom);
         const newDom = createDom(newVdom);
+        deepWillUnmount(oldVdom);
         oldDom.parentNode.replaceChild(newDom, oldDom);
+        if(newVdom.componentDidMount) newVdom.componentDidMount();
     } else if (oldVdom && !newVdom) {
         const oldDom = findDom(oldVdom);
+        deepWillUnmount(oldVdom);
         oldDom.parentNode.removeChild(oldDom);
     } else if (!oldVdom && newVdom) {
         const newDom = createDom(newVdom);
@@ -185,6 +197,7 @@ export function compareTwoVdoms(oldVdom, newVdom, parentDom, nextDom) {
         } else {
             parentDom.appendChild(newDom);
         }
+        if(newVdom.componentDidMount) newVdom.componentDidMount();
     } else {
         updateElement(oldVdom, newVdom);
     }
@@ -213,6 +226,7 @@ function updateElement(oldVdom, newVdom) {
 
 function updateClassComponent(oldVdom, newVdom) {
     const classInstance = newVdom.classInstance = oldVdom.classInstance;
+    if(classInstance.componentWillReceiveProps) classInstance.componentWillReceiveProps(newVdom.props);
     classInstance.updater.emitUpdate(newVdom.props);
 }
 
@@ -246,20 +260,25 @@ function path(diffQueue){
     let deleteMap = {};
     let deleteChildren = [];
     diffQueue.forEach((item) => {
-        const {type, fromIndex, toIndex} = item;
+        const {type, fromIndex, toIndex, vdom} = item;
         if(type === MOVE || type === REMOVE){
             const oldChild = item.parentDom.childNodes[fromIndex];
             deleteMap[fromIndex] = oldChild;
-            deleteChildren.push(oldChild);
+            deleteChildren.push({dom: oldChild, type, vdom});
         }
     });
     deleteChildren.forEach(item => {
-        item.parentNode.removeChild(item);
+        const {dom, type, vdom} = item;
+        if(type === REMOVE){
+            deepWillUnmount(vdom);
+        }
+        dom.parentNode.removeChild(dom);
     });
     diffQueue.forEach((item) => {
         const { type, fromIndex, toIndex, parentDom, dom} = item;
         if(type === INSERT){
             insertChildAt(parentDom, dom, toIndex)
+            if(dom.componentDidMount) dom.componentDidMount();
         }
         if(type === MOVE){
             insertChildAt(parentDom, deleteMap[fromIndex], toIndex)
@@ -310,7 +329,8 @@ function diff(parentDom, oldChildren, newChildren){
             diffQueue.push({
                 parentDom,
                 type: REMOVE,
-                fromIndex: oldElement._mountIndex
+                vdom: oldElement,
+                fromIndex:  oldElement._mountIndex
             })
         }
     }
@@ -364,6 +384,25 @@ function canDeepCompare(oldElement, newElement){
     }
     return;
 }
+
+/**
+ * 采用深度优先遍历的方式,依次执行组件及子组件上面的componentWillUnmount方法
+ * @param vdom
+ */
+function deepWillUnmount(vdom){
+    if(isNotNeedRender(vdom)) return;
+    const { classInstance } = vdom;
+    if(classInstance && classInstance.componentWillUnmount){
+        classInstance.componentWillUnmount();
+    }
+    if(classInstance && classInstance.oldVdom){ // 考虑类组件返回另一个类组件
+        deepWillUnmount(classInstance.oldVdom)
+    } else if(vdom.props.children) {
+        const children = Array.isArray(vdom.props.children) ? vdom.props.children : [vdom.props.children]
+        children.forEach(item => deepWillUnmount(item))
+    }
+}
+
 const ReactDOM = {
     render,
 }

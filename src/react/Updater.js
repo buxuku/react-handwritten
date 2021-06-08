@@ -42,9 +42,7 @@ export class Updater {
     updateComponent() {
         const {componentInstance, pendingState, nextProps} = this;
         if (pendingState.length || nextProps) {
-            componentInstance.state = this.getState();
-            componentInstance.props = nextProps;
-            componentInstance.forceUpdate();
+            shouldUpdate(componentInstance, nextProps, this.getState())
         }
         this.batchTracking = false;
     }
@@ -60,5 +58,25 @@ export class Updater {
         })
         pendingState.length = 0; // 清空队列
         return state;
+    }
+}
+
+function shouldUpdate(componentInstance, nextProps, nextState){
+    const prevProps = componentInstance.props;
+    const prevState = componentInstance.state;
+    // 不管组件是否需要更新,实例上面的props和state值都需要更新为最新状态
+    componentInstance.props = nextProps;
+    if(componentInstance.constructor.getDerivedStateFromProps){
+        componentInstance.state = componentInstance.constructor.getDerivedStateFromProps(nextProps, nextState) || nextState;
+    } else {
+        componentInstance.state = nextState;
+    }
+    let willUpdate = true; // 默认需要更新
+    if(componentInstance.shouldComponentUpdate){
+        willUpdate = componentInstance.shouldComponentUpdate(nextProps, nextState);
+    }
+    if (willUpdate) {
+        if (componentInstance.componentWillUpdate) componentInstance.componentWillUpdate();
+        componentInstance.forceUpdate(true, prevProps, prevState);
     }
 }

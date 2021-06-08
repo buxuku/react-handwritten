@@ -18,10 +18,24 @@ export class Component {
         this.updater.addState(partialState)
     }
 
-    forceUpdate() {
+    forceUpdate(triggerFromUpdate = false, prevProps, prevState) {
         const oldVdom = this.oldVdom;
-        const newVdom = wrapToVdom(this.render());
+        if(!triggerFromUpdate && this.constructor.getDerivedStateFromProps){
+            this.state = this.constructor.getDerivedStateFromProps(this.props, this.state) || this.state;
+        }
+        const newVdom = this.render();
+        let extraArgs;
+        if(this.getSnapshotBeforeUpdate){
+            extraArgs = this.getSnapshotBeforeUpdate();
+        }
         compareTwoVdoms(oldVdom, newVdom)
         this.oldVdom = newVdom; // 将更新后的虚拟DOM更新到原来的oldVdom上面
+        if(this.componentDidUpdate){
+            if(triggerFromUpdate){
+                this.componentDidUpdate(prevState, prevState, extraArgs);
+            }else{
+                this.componentDidUpdate(this.props, this.state, extraArgs);
+            }
+        }
     }
 }
