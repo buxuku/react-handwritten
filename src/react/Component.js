@@ -1,4 +1,5 @@
 import {compareTwoVdoms} from '../react-dom';
+import {wrapToVdom} from '../utils';
 import {Updater} from "./Updater";
 
 /**
@@ -19,7 +20,7 @@ export class Component {
 
     forceUpdate() {
         const oldVdom = this.oldVdom;
-        const newVdom = this.render();
+        const newVdom = wrapToVdom(this.render());
         compareTwoVdoms(oldVdom, newVdom)
         this.oldVdom = newVdom; // 将更新后的虚拟DOM更新到原来的oldVdom上面
     }
