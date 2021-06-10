@@ -1,5 +1,5 @@
 import {addEvent} from './event';
-import {wrapToVdom, isNotNeedRender} from '../utils';
+import {wrapToVdom, isNotNeedRender, getVomKey} from '../utils';
 import {REACT_FORWARD_COMPONENT, REACT_TEXT, MOVE, REMOVE, INSERT} from '../constants';
 
 const diffQueue = [];
@@ -278,7 +278,7 @@ function diff(parentDom, oldChildren, newChildren){
     let mountIndex = 0;
     newChildren.forEach((item, index) => {
         if(!isNotNeedRender(item)){
-            const key = item.key || index.toString();
+            const key = getVomKey(item, index);
             const oldElement = oldChildrenMap[key];
             if(item === oldElement){ // 是相同节点
                 if(oldElement._mountIndex < lastIndex){ // 判断老元素是否需要移动
@@ -322,7 +322,7 @@ function diff(parentDom, oldChildren, newChildren){
 function getOldChildrenMap(elements){
     let map = {};
     elements.forEach((item, index) => {
-        const key = (item && item.key) || index.toString();
+        const key = getVomKey(item, index);
         map[key] = item;
     });
     return map;
@@ -337,7 +337,7 @@ function getOldChildrenMap(elements){
 function getNewChildrenMap(oldChildrenMap, elements){
     let map = {};
     elements.forEach((item, index) => {
-        const key = (item && item.key) || index.toString();
+        const key = getVomKey(item, index);
         if(!isNotNeedRender(item)){ // 新节点不需要渲染
             let oldElement = oldChildrenMap[key];
             // 判断是否可以复用

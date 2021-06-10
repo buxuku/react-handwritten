@@ -28,3 +28,13 @@ export function wrapToVdom(element) {
 export function isNotNeedRender(vdom){
     return vdom === null || vdom === undefined || typeof vdom === 'boolean';
 }
+
+/**
+ * 获取vdom的key属性
+ * @param vdom
+ * @param index
+ * @returns {*|string}
+ */
+export function getVomKey(vdom, index){
+    return vdom && vdom.key !== undefined ? vdom.key : index.toString();
+}
