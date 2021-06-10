@@ -114,7 +114,7 @@ function renderAttributes(dom, attributes = {}, oldAttributes = {}) {
             if (oldAttributes.style) {
                 const newStyleKeys = Object.keys(value);
                 const oldStyleKeys = Object.keys(oldAttributes.style);
-                const deleStyleKeys = oldStyleKeys.filter(item => !newAttsrKeys.includes(item));
+                const deleStyleKeys = oldStyleKeys.filter(item => !newStyleKeys.includes(item));
                 deleStyleKeys.forEach(item => dom.style[item] = ''); // 删除新节点不存在的样式
             }
             for (let attr in value) {
