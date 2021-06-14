@@ -38,3 +38,22 @@ export function isNotNeedRender(vdom){
 export function getVomKey(vdom, index){
     return vdom && vdom.key !== undefined ? vdom.key : index.toString();
 }
+
+/**
+ * 对于[].map类型的节点,进行扁平化处理
+ * @param children
+ * @returns {*[]}
+ */
+export function flatten(children){
+    const result = [];
+    (function loop(array){
+        array.forEach(child => {
+            if(Array.isArray(child)){
+                loop(child);
+            }else{
+                result.push(child);
+            }
+        })
+    })(children)
+    return result;
+}

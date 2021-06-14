@@ -1,5 +1,5 @@
 import {Component} from "./Component";
-import {wrapToVdom} from '../utils';
+import {wrapToVdom, flatten} from '../utils';
 import {REACT_FORWARD_COMPONENT} from "../constants";
 
 /**
@@ -12,6 +12,7 @@ import {REACT_FORWARD_COMPONENT} from "../constants";
 const createElement = (type, config = {}, ...children) => {
     const {ref, __source, __self, key, ...props} = config || {};
     if (children.length) {
+        children = flatten(children);
         props.children = children.length > 1 ? children.map(wrapToVdom) : wrapToVdom(children[0]);
     }
     return {
