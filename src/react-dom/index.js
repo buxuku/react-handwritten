@@ -201,6 +201,7 @@ function updateElement(oldVdom, newVdom) {
         const currentDom = newVdom.dom = findDom(oldVdom); // 把老的Dom节点直接复制过来
         renderAttributes(currentDom, newVdom.props, oldVdom.props); // 更新节点属性
         updateChildren(currentDom, oldVdom.props.children, newVdom.props.children);
+        oldVdom.props = newVdom.props; // 更新完成成, 新的props属性复制到老的Vom上面,否则props不会更新
     } else if(typeof oldVdom.type === 'function'){
         if (oldVdom.type.isReactComponent) {
             updateClassComponent(oldVdom, newVdom)
