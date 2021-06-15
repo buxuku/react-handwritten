@@ -84,6 +84,9 @@ function mountClassComponent(vdom) {
     const defaultProps = type.defaultProps || {};
     const combinedProps = {...defaultProps, ...props};
     const classInstance = new type(combinedProps);
+    if(type.contextType){
+        classInstance.context = type.contextType._value;
+    }
     if(classInstance.componentWillMount) classInstance.componentWillMount();
     if(type.getDerivedStateFromProps){
         classInstance.state = type.getDerivedStateFromProps(combinedProps, classInstance.state) || classInstance.state;

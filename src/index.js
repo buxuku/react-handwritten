@@ -1,11 +1,8 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-// import LifeCycle from './components/LifeCycle';
-// import ComponentWillUnmount from './components/ComponenntWillUnmount';
-// import GetDerivedStateFromProps from "./components/GetDerivedStateFromProps";
-import GetSnapshotBeforeUpdate from './components/GetSnapshotBeforeUpdate';
+import React from './react';
+import ReactDOM from './react-dom';
+import CreateContext from "./components/CreateContext";
 
 ReactDOM.render(
-    <GetSnapshotBeforeUpdate />,
+    <CreateContext />,
     document.getElementById('root')
 );

@@ -40,10 +40,27 @@ function forwardRef(render) {
     }
 }
 
+function createContext(value){
+    let context = {
+        _value: value,
+        Provider,
+        Consumer,
+    };
+    function Provider({value, children}){ // Provider接收一个value的props
+        context._value = value;
+        return children;
+    }
+    function Consumer({children}){ // Consumer的children是一个函数
+        return children(context._value)
+    }
+    return context;
+}
+
 const React = {
     createElement,
     Component,
     createRef,
+    createContext,
     forwardRef,
 }
 
