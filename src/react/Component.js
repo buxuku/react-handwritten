@@ -23,7 +23,7 @@ export class Component {
         if(!triggerFromUpdate && this.constructor.getDerivedStateFromProps){
             this.state = this.constructor.getDerivedStateFromProps(this.props, this.state) || this.state;
         }
-        const newVdom = this.render();
+        const newVdom = wrapToVdom(this.render());
         let extraArgs;
         if(this.getSnapshotBeforeUpdate){
             extraArgs = this.getSnapshotBeforeUpdate();
