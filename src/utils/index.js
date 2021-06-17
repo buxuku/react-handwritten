@@ -36,7 +36,7 @@ export function isNotNeedRender(vdom){
  * @returns {*|string}
  */
 export function getVomKey(vdom, index){
-    return vdom && vdom.key !== undefined ? vdom.key : index.toString();
+    return vdom && vdom.key !== undefined ? vdom.key : `$$REACT_KEY_${index}`; // 添加前缀防止index和key冲突
 }
 
 /**
