@@ -24,7 +24,7 @@ export class Component {
             this.state = this.constructor.getDerivedStateFromProps(this.props, this.state) || this.state;
         }
         if(this.constructor.contextType){
-            this.context = this.constructor.contextType._value;
+            this.context = this.constructor.contextType._currentValue;
         }
         const newVdom = wrapToVdom(this.render());
         let extraArgs;

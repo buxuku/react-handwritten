@@ -1,6 +1,6 @@
 import {Component} from "./Component";
 import {wrapToVdom, flatten} from '../utils';
-import {REACT_FORWARD_COMPONENT} from "../constants";
+import {REACT_FORWARD_COMPONENT, REACT_CONTEXT, REACT_PROVIDER} from "../constants";
 
 /**
  * 生成虚拟DOM
@@ -41,17 +41,14 @@ function forwardRef(render) {
 }
 
 function createContext(value){
-    let context = {
-        _value: value,
-        Provider,
-        Consumer,
+    const context = {$$typeof: REACT_CONTEXT, _currentValue: null};
+    context.Provider = {
+        $$typeof: REACT_PROVIDER,
+        _context: context,
     };
-    function Provider({value, children}){ // Provider接收一个value的props
-        context._value = value;
-        return children;
-    }
-    function Consumer({children}){ // Consumer的children是一个函数
-        return children(context._value)
+    context.Consumer = {
+        $$typeof: REACT_CONTEXT,
+        _context: context,
     }
     return context;
 }

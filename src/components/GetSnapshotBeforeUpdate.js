@@ -6,13 +6,15 @@ class GetSnapshotBeforeUpdate extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            message: []
+            message: [],
+            show: false,
         }
         this.wrapper = React.createRef();
     }
     handleClick = () => {
         this.setState({
             message: [id++, ...this.state.message],
+            show: !this.state.show,
         })
     }
     getSnapshotBeforeUpdate(){
@@ -28,6 +30,7 @@ class GetSnapshotBeforeUpdate extends React.Component {
         return (
             <div>
                 <div style={{height: '100px', overflow: 'scroll', border: '1px solid red'}} ref={this.wrapper}>
+                    {this.state.show ? 'false' : 'true'}
                     {this.state.message.map(item => <p key={item}>{item}</p>)}
                 </div>
                 <button onClick={this.handleClick}>+</button>
