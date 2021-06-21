@@ -35,7 +35,7 @@ class PureComponnent extends React.PureComponnent {
                 <ChildMemo name={this.state.name}/>
                 <button onClick={() => this.handleAdd(1)}>+1</button>
                 <button onClick={() => this.handleAdd(0)}>nothing</button>
-                <button onClick={this.changeName}>nothing</button>
+                <button onClick={this.changeName}>change name</button>
             </div>
         )
     }
