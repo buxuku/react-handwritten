@@ -1,6 +1,6 @@
 import {Component} from "./Component";
-import {wrapToVdom, flatten} from '../utils';
-import {REACT_FORWARD_COMPONENT, REACT_CONTEXT, REACT_PROVIDER} from "../constants";
+import {wrapToVdom, flatten, shallowEqual} from '../utils';
+import {REACT_FORWARD_COMPONENT, REACT_CONTEXT, REACT_PROVIDER, REACT_MEMO} from "../constants";
 
 /**
  * 生成虚拟DOM
@@ -53,9 +53,25 @@ function createContext(value){
     return context;
 }
 
+class PureComponnent extends Component{
+    shouldComponentUpdate(nextProps, nextState){
+        return !shallowEqual(this.props, nextProps) || !shallowEqual(this.state, nextState);
+    }
+}
+
+function memo(type, compare = shallowEqual){
+    return {
+        $$typeof: REACT_MEMO,
+        compare,
+        type,
+    }
+}
+
 const React = {
     createElement,
     Component,
+    PureComponnent,
+    memo,
     createRef,
     createContext,
     forwardRef,

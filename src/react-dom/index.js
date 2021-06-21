@@ -1,6 +1,15 @@
 import {addEvent} from './event';
 import {wrapToVdom, isNotNeedRender, getVomKey} from '../utils';
-import {REACT_FORWARD_COMPONENT, REACT_TEXT, REACT_CONTEXT, REACT_PROVIDER, MOVE, REMOVE, INSERT} from '../constants';
+import {
+    REACT_FORWARD_COMPONENT,
+    REACT_TEXT,
+    REACT_CONTEXT,
+    REACT_PROVIDER,
+    MOVE,
+    REMOVE,
+    INSERT,
+    REACT_MEMO
+} from '../constants';
 
 const diffQueue = [];
 let updateDepth = 0;
@@ -24,6 +33,9 @@ function createDom(vdom) {
     if (isNotNeedRender(vdom)) return
     let dom;
     const {type, props, ref} = vdom;
+    if (type && type.$$typeof === REACT_MEMO) {
+        return mountMemoComponent(vdom);
+    }
     if (type && type.$$typeof === REACT_FORWARD_COMPONENT) {
         return mountForwardComponent(vdom);
     }
@@ -80,6 +92,13 @@ function reconcileChildren(childrenVdom, parentDOM) {
     }
 }
 
+function mountMemoComponent(vdom){
+    const {type, props} = vdom;
+    const renderVdom = type.type(props);
+    vdom.oldVdom = renderVdom;
+    vdom.prevProps = props; // 缓存当前props用于更新时做对比.
+    return createDom(renderVdom);
+}
 /**
  * Provider组件的渲染,先更新Provider上面传递的value属性,然后渲染它的children元素
  * @param vdom
@@ -243,6 +262,9 @@ function updateElement(oldVdom, newVdom) {
             dom.textContent = newVdom.props.content;
         }
     }
+    if(oldVdom.type && oldVdom.type.$$typeof === REACT_MEMO){
+        updateMemoComponent(oldVdom, newVdom);
+    }
     if (oldVdom.type && oldVdom.type.$$typeof === REACT_PROVIDER){
         updateProviderComponent(oldVdom, newVdom);
     }
@@ -260,6 +282,19 @@ function updateElement(oldVdom, newVdom) {
             updateFunctionComponent(oldVdom, newVdom);
         }
     }
+}
+
+function updateMemoComponent(oldVdom, newVdom){
+    const {type, props} = newVdom;
+    if(!type.compare(oldVdom.prevProps, props)){
+        const renderVdom = type.type(props);
+        const parentDom = findDom(oldVdom);
+        compareTwoVdoms(oldVdom.oldVdom, renderVdom, parentDom);
+        newVdom.oldVdom = renderVdom;
+    } else {
+        newVdom.oldVdom = oldVdom.oldVdom
+    }
+    newVdom.prevProps = props;
 }
 
 /**

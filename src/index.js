@@ -1,8 +1,8 @@
 import React from './react';
 import ReactDOM from './react-dom';
-import CreateContext from "./components/CreateContext";
+import PureComponnent from "./components/PureComponent";
 
 ReactDOM.render(
-    <CreateContext />,
+    <PureComponnent />,
     document.getElementById('root')
 );

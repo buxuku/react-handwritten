@@ -7,3 +7,5 @@ export const INSERT = 'INSERT';
 
 export const REACT_CONTEXT = Symbol('REACT_CONTEXT');
 export const REACT_PROVIDER = Symbol('REACT_PROVIDER');
+
+export const REACT_MEMO = Symbol('REACT_MEMO');
