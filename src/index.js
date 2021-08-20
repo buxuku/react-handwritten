@@ -1,8 +1,8 @@
 import React from './react';
 import ReactDOM from './react-dom';
-import PureComponnent from "./components/PureComponent";
+import UseState from "./components/UseState";
 
 ReactDOM.render(
-    <PureComponnent />,
+    <UseState />,
     document.getElementById('root')
 );

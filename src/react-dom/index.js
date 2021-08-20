@@ -13,6 +13,9 @@ import {
 
 const diffQueue = [];
 let updateDepth = 0;
+let hooksState = [];
+let hooksIndex = 0;
+let scheduleUpdate;
 /**
  * 将虚拟DOM渲染到真实DOM节点里面
  * @param vdom
@@ -23,6 +26,22 @@ function render(vdom, container) {
     const dom = createDom(vdom);
     container.appendChild(dom);
     if(dom.componentDidMount) dom.componentDidMount();
+    scheduleUpdate = () => {
+        hooksIndex = 0; // 更新时,重置hooksIndex, 以便重新渲染函数组件时,能够获取到老的缓存的值
+        compareTwoVdoms(vdom, vdom, container)
+    }
+}
+
+export function useState(initialValue){
+    if(!hooksState[hooksIndex]){
+        hooksState[hooksIndex] = initialValue;
+    }
+    const currentIndex = hooksIndex;
+    function setState(newState){
+        hooksState[currentIndex] = newState;
+        scheduleUpdate();
+    }
+    return [hooksState[hooksIndex++], setState]
 }
 
 /**

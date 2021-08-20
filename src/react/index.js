@@ -1,6 +1,7 @@
 import {Component} from "./Component";
 import {wrapToVdom, flatten, shallowEqual} from '../utils';
 import {REACT_FORWARD_COMPONENT, REACT_CONTEXT, REACT_PROVIDER, REACT_MEMO} from "../constants";
+import {useState} from "../react-dom";
 
 /**
  * 生成虚拟DOM
@@ -75,6 +76,7 @@ const React = {
     createRef,
     createContext,
     forwardRef,
+    useState
 }
 
 export default React;
